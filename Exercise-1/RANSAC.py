@@ -4,11 +4,13 @@ import pcl
 # Load Point Cloud file
 cloud = pcl.load_XYZRGB('tabletop.pcd')
 
+# Create a VoxelGrid filter object for our input point cloud
+vox = cloud.make_voxel_grid_filter()
 
 # Voxel Grid filter
 # Note: this (1) is a poor choice of leaf size   
 # Experiment and find the appropriate size!
-LEAF_SIZE = 1   
+LEAF_SIZE = 0.01   
 
 # PassThrough filter
 vox.set_leaf_size(LEAF_SIZE, LEAF_SIZE, LEAF_SIZE)

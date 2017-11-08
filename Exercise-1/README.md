@@ -18,5 +18,6 @@ In brief, the steps to complete this exercise are the following:
 ### To view a .pcd file:
 
 ```
+$ python RANSAC.py
 $ pcl_viewer filename.pcd 
 ```
