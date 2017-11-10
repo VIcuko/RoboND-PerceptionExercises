@@ -4,6 +4,7 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
+from sklearn.svm import LinearSVC
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn import cross_validation
 from sklearn import metrics
@@ -62,7 +63,7 @@ encoder = LabelEncoder()
 y_train = encoder.fit_transform(y_train)
 
 # Create classifier
-clf = svm.SVC(kernel='linear')
+clf = LinearSVC(random_state=0)
 
 # Set up 5-fold cross-validation
 kf = cross_validation.KFold(len(X_train),
