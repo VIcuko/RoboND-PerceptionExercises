@@ -33,7 +33,7 @@ def compute_color_histograms(cloud, using_hsv=False):
         channel_3_vals.append(color[2])
     
     # TODO: Compute histograms
-    nbins=128
+    nbins=32
     bins_range=(0, 256)
     r_hist = np.histogram(channel_1_vals, bins=nbins, range=bins_range)
     g_hist = np.histogram(channel_2_vals, bins=nbins, range=bins_range)
@@ -64,7 +64,7 @@ def compute_normal_histograms(normal_cloud):
         norm_z_vals.append(norm_component[2])
 
     # TODO: Compute histograms of normal values (just like with color)
-    nbins=128 
+    nbins=32 
     bins_range=(0, 256)
     x_hist = np.histogram(norm_x_vals, bins=nbins, range=bins_range)
     y_hist = np.histogram(norm_y_vals, bins=nbins, range=bins_range)
