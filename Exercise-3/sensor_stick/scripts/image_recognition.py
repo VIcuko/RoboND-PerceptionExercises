@@ -110,7 +110,7 @@ def pcl_callback(pcl_msg):
     detected_objects_labels = []
     detected_objects = []
 
-    for index, pts_list in enumerate(cluster_cloud):
+    for index, pts_list in enumerate(cluster_indices):
 
         # Grab the points for the cluster
         pcl_cluster = cluster_cloud.extract(pts_list)
