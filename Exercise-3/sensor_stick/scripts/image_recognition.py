@@ -46,15 +46,6 @@ def pcl_callback(pcl_msg):
 
     cloud_filtered = passthrough.filter()
 
-    # TODO: Extract outliers
-    outlier_filter = cloud_filtered.make_statistical_outlier_filter()
-    
-    outlier_filter.set_mean_k(50)
-    x = 1.0
-    outlier_filter.set_std_dev_mul_thresh(x)
-    cloud_filtered = outlier_filter.filter()
-    cloud_nonoise = cloud_filtered
-
     # TODO: RANSAC Plane Segmentation
     seg = cloud_filtered.make_segmenter()
 
@@ -66,12 +57,20 @@ def pcl_callback(pcl_msg):
 
     inliers, coefficients = seg.segment()
 
-     # TODO: Extract inliers
+     # TODO: Extract inliers and outliers
     extracted_inliers_table = cloud_filtered.extract(inliers, negative=False)
-    extracted_inliers_objects = cloud_filtered.extract(inliers, negative=True)
+    extracted_outliers_objects = cloud_filtered.extract(inliers, negative=True)
+
+    # TODO: Filter noise
+    outlier_filter = extracted_outliers_objects.make_statistical_outlier_filter()
+    
+    outlier_filter.set_mean_k(50)
+    x = 1.0
+    outlier_filter.set_std_dev_mul_thresh(x)
+    cloud_filtered = outlier_filter.filter()
 
     # TODO: Euclidean Clustering
-    white_cloud = XYZRGB_to_XYZ(extracted_inliers_objects)
+    white_cloud = XYZRGB_to_XYZ(cloud_filtered)
     tree = white_cloud.make_kdtree()
 
     # TODO: Create Cluster-Mask Point Cloud to visualize each cluster separately
@@ -114,21 +113,21 @@ def pcl_callback(pcl_msg):
     for index, pts_list in enumerate(cluster_cloud):
 
         # Grab the points for the cluster
-        pcl_cluster = cloud_objects.extract(pts_list)
+        pcl_cluster = cluster_cloud.extract(pts_list)
 
         # TODO: convert the cluster from pcl to ROS using helper function
         ros_cluster = pcl_to_ros(pcl_cluster)
 
         # Extract histogram features
         # TODO: complete this step just as is covered in capture_features.py
-        labeled_features = []
-        chists = compute_color_histograms(sample_cloud, using_hsv=True)
-        normals = get_normals(sample_cloud)
+        #labeled_features = []
+        chists = compute_color_histograms(ros_cluster, using_hsv=True)
+        normals = get_normals(ros_cluster)
         nhists = compute_normal_histograms(normals)
         
         # Compute the associated feature vector
         feature = np.concatenate((chists, nhists))
-        labeled_features.append([feature, model_name])
+        #labeled_features.append([feature, model_name])
 
         # Make the prediction
         prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
@@ -148,16 +147,16 @@ def pcl_callback(pcl_msg):
 
     rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
 
-    # TODO: Convert PCL data to ROS messages
-    ros_cloud_nonoise = pcl_to_ros(cloud_nonoise) 
+    # TODO: Convert PCL data to ROS messages 
     ros_cloud_table = pcl_to_ros(extracted_inliers_table)
-    ros_cloud_objects = pcl_to_ros(extracted_inliers_objects)
+    ros_cloud_objects = pcl_to_ros(extracted_outliers_objects)
+    ros_cloud_objects_nonoise = pcl_to_ros(cloud_filtered)
     ros_cluster_cloud = pcl_to_ros(cluster_cloud)
 
     # TODO: Publish ROS messages
-    pcl_nonoise_pub.publish(ros_cloud_nonoise)
     pcl_table_pub.publish(ros_cloud_table)
     pcl_objects_pub.publish(ros_cloud_objects)
+    pcl_objects_nonoise_pub.publish(ros_cloud_objects_nonoise)
     pcl_cluster_pub.publish(ros_cluster_cloud)
 
     # Publish the list of detected objects
@@ -172,9 +171,9 @@ if __name__ == '__main__':
     pcl_sub = rospy.Subscriber("/sensor_stick/point_cloud", pc2.PointCloud2, pcl_callback, queue_size=1)
     
     # TODO: Create Publishers
-    pcl_nonoise_pub = rospy.Publisher("/pcl_nonoise", PointCloud2, queue_size=1)
     pcl_table_pub = rospy.Publisher("/pcl_table", PointCloud2, queue_size=1)
     pcl_objects_pub = rospy.Publisher("/pcl_objects", PointCloud2, queue_size=1)
+    pcl_objects_nonoise_pub = rospy.Publisher("/pcl_objects_nonoise", PointCloud2, queue_size=1)
     pcl_cluster_pub = rospy.Publisher("/pcl_cluster", PointCloud2, queue_size=1)
     
     object_markers_pub = rospy.Publisher("/object_markers", Marker, queue_size=1)
