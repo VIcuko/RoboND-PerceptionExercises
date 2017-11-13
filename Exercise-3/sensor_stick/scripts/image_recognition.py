@@ -113,7 +113,7 @@ def pcl_callback(pcl_msg):
     for index, pts_list in enumerate(cluster_indices):
 
         # Grab the points for the cluster
-        pcl_cluster = cluster_cloud.extract(pts_list)
+        pcl_cluster = extracted_outliers_objects.extract(pts_list)
 
         # TODO: convert the cluster from pcl to ROS using helper function
         ros_cluster = pcl_to_ros(pcl_cluster)
